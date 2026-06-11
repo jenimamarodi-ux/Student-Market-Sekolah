@@ -1,0 +1,2032 @@
+import React, { useState, useEffect } from 'react';
+import { 
+  ShoppingBag, 
+  Search, 
+  ShoppingCart, 
+  ClipboardList, 
+  User, 
+  PlusCircle, 
+  Package, 
+  TrendingUp, 
+  Heart, 
+  Star, 
+  LogOut, 
+  Edit, 
+  Trash2, 
+  CheckCircle2, 
+  XCircle, 
+  ChevronRight, 
+  Tag, 
+  Store,
+  Filter,
+  DollarSign,
+  Layers,
+  Settings,
+  ImageIcon,
+  Palette,
+  Layout,
+  Image as LucideImage,
+  Sparkles
+} from 'lucide-react';
+
+// === DATA DEFAULT PRODUK ===
+const DEFAULT_PRODUCTS = [
+  {
+    id: 1,
+    name: "Donat Gula Halus",
+    category: "Makanan",
+    description: "Donat empuk buatan kelas XI Tata Boga dengan taburan gula halus melimpah.",
+    price: 3000,
+    stock: 20,
+    sold: 45,
+    rating: 4.8,
+    reviews: [
+      { user: "Budi", rating: 5, comment: "Donatnya lembut banget, manisnya pas!" }
+    ],
+    image: "https://images.unsplash.com/photo-1557827983-012eb6ea8dc1?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3",
+    promo: true,
+    sellerId: "penjual1"
+  },
+  {
+    id: 2,
+    name: "Es Teh Manis Segar",
+    category: "Minuman",
+    description: "Es teh jumbo pelepas dahaga setelah olahraga. Dibuat dengan teh tubruk asli.",
+    price: 2500,
+    stock: 50,
+    sold: 120,
+    rating: 4.9,
+    reviews: [
+      { user: "Siti", rating: 5, comment: "Segar banget diminum siang-siang." }
+    ],
+    image: "https://images.unsplash.com/photo-1556679343-c7306c1976bc?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3",
+    promo: false,
+    sellerId: "penjual1"
+  },
+  {
+    id: 3,
+    name: "Gantungan Kunci Resin",
+    category: "Kerajinan Tangan",
+    description: "Gantungan kunci aesthetic dari resin bening dengan hiasan bunga kering di dalamnya.",
+    price: 8000,
+    stock: 15,
+    sold: 12,
+    rating: 4.5,
+    reviews: [],
+    image: "https://images.unsplash.com/photo-1582139329536-e7284fece509?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3",
+    promo: true,
+    sellerId: "penjual2"
+  },
+  {
+    id: 4,
+    name: "Kaos Desain OSIS",
+    category: "Fashion",
+    description: "Kaos katun bambu 30s adem dengan desain limited edition buatan divisi seni OSIS.",
+    price: 75000,
+    stock: 8,
+    sold: 30,
+    rating: 4.7,
+    reviews: [],
+    image: "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3",
+    promo: false,
+    sellerId: "penjual1"
+  },
+  {
+    id: 5,
+    name: "Stiker Karakter Lucu (Pack)",
+    category: "Stiker",
+    description: "1 pack isi 10 stiker bahan vinyl anti air bergambar karakter kartun sekolah.",
+    price: 5000,
+    stock: 40,
+    sold: 80,
+    rating: 5.0,
+    reviews: [],
+    image: "https://images.unsplash.com/photo-1572375995501-4b0894dbe341?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3",
+    promo: false,
+    sellerId: "penjual2"
+  },
+  {
+    id: 6,
+    name: "Poster Motivasi Belajar",
+    category: "Poster",
+    description: "Poster ukuran A3+ kertas tebal, berisi kata-kata motivasi untuk menghias kamar atau mading.",
+    price: 12000,
+    stock: 10,
+    sold: 5,
+    rating: 4.2,
+    reviews: [],
+    image: "https://images.unsplash.com/photo-1579783900882-c0d3dad7b119?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3",
+    promo: false,
+    sellerId: "penjual1"
+  }
+];
+
+// === REKOMENDASI PUSTAKA FOTO CEPAT UNTUK ADMIN ===
+const PRESET_IMAGES = [
+  { name: "Donat Lezat", url: "https://images.unsplash.com/photo-1557827983-012eb6ea8dc1?w=500&auto=format&fit=crop&q=60" },
+  { name: "Roti Cokelat", url: "https://images.unsplash.com/photo-1509440159596-0249088772ff?w=500&auto=format&fit=crop&q=60" },
+  { name: "Kue Cookies", url: "https://images.unsplash.com/photo-1499636136210-6f4ee915583e?w=500&auto=format&fit=crop&q=60" },
+  { name: "Es Teh Manis", url: "https://images.unsplash.com/photo-1556679343-c7306c1976bc?w=500&auto=format&fit=crop&q=60" },
+  { name: "Jus Jeruk Segar", url: "https://images.unsplash.com/photo-1613478223719-2ab802602423?w=500&auto=format&fit=crop&q=60" },
+  { name: "Susu Kotak", url: "https://images.unsplash.com/photo-1563636619-e9143da7973b?w=500&auto=format&fit=crop&q=60" },
+  { name: "Gantungan Resin", url: "https://images.unsplash.com/photo-1582139329536-e7284fece509?w=500&auto=format&fit=crop&q=60" },
+  { name: "Gelang Manik-Manik", url: "https://images.unsplash.com/photo-1611591437281-460bfbe1220a?w=500&auto=format&fit=crop&q=60" },
+  { name: "Kaos Polos Siswa", url: "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=500&auto=format&fit=crop&q=60" },
+  { name: "Tote Bag Keren", url: "https://images.unsplash.com/photo-1544816155-12df9643f363?w=500&auto=format&fit=crop&q=60" },
+  { name: "Stiker Imut", url: "https://images.unsplash.com/photo-1572375995501-4b0894dbe341?w=500&auto=format&fit=crop&q=60" },
+  { name: "Poster Aesthetic", url: "https://images.unsplash.com/photo-1579783900882-c0d3dad7b119?w=500&auto=format&fit=crop&q=60" }
+];
+
+export default function App() {
+  // === STATE UTAMA ===
+  const [currentUser, setCurrentUser] = useState(null); // format: { name, username, role, balance, favorites: [] }
+  const [isRegistering, setIsRegistering] = useState(false);
+  const [products, setProducts] = useState(DEFAULT_PRODUCTS);
+  const [orders, setOrders] = useState([
+    {
+      id: "ORD-9821",
+      buyer: "Andi Siswa",
+      items: [{ id: 1, name: "Donat Gula Halus", price: 3000, qty: 3 }],
+      total: 9000,
+      paymentMethod: "COD",
+      status: "Menunggu Konfirmasi",
+      sellerId: "penjual1",
+      date: "10 Juni 2026",
+      reviewed: false
+    }
+  ]);
+
+  // === PENGATURAN TAMPILAN & BACKGROUND (ADMIN CONTROLLED) ===
+  const [appSettings, setAppSettings] = useState({
+    logoText: "Student Market Sekolah",
+    logoSub: "Kreativitas Siswa Mandiri",
+    headerBg: "bg-blue-700", // bg-blue-700, bg-emerald-700, bg-rose-700, bg-violet-700
+    heroTitle: "Temukan Karya Terbaik Siswa!",
+    heroSub: "Temukan makanan sehat, minuman segar, dan kerajinan tangan aesthetic buatan teman-teman kreatif sekolah kita!",
+    heroBgGrad: "from-blue-700 via-blue-600 to-amber-400", // gradient classes
+    appWallpaper: "grid-notebook", // standard, grid-notebook, dots-aesthetic, amber-semangat, blue-lembut, kustom-link
+    customWallpaperUrl: ""
+  });
+
+  // Form Login & Registrasi
+  const [loginForm, setLoginForm] = useState({ username: '', password: '' });
+  const [regForm, setRegForm] = useState({ name: '', username: '', password: '', role: 'Pembeli' });
+
+  // Navigasi & Filter Aplikasi
+  const [activeTab, setActiveTab] = useState('Beranda'); // Beranda, Cari, Keranjang, Pesanan, Profil, PenjualDashboard, AdminDashboard
+  const [sellerSubTab, setSellerSubTab] = useState('Kelola'); // Kelola, Tambah, Pesanan, Laporan
+  const [adminSubTab, setAdminSubTab] = useState('Tampilan'); // Tampilan, ProdukGambar, LandingPage
+  
+  // Filter & Pencarian
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('Semua');
+  const [maxPrice, setMaxPrice] = useState(100000);
+
+  // Keranjang Belanja
+  const [cart, setCart] = useState([]);
+
+  // Detail/Review Modal
+  const [selectedProduct, setSelectedProduct] = useState(null);
+  const [reviewRating, setReviewRating] = useState(5);
+  const [reviewComment, setReviewComment] = useState('');
+
+  // Form Tambah/Edit Produk Penjual
+  const [isEditing, setIsEditing] = useState(false);
+  const [productForm, setProductForm] = useState({
+    id: null,
+    name: '',
+    category: 'Makanan',
+    description: '',
+    price: '',
+    stock: '',
+    image: '',
+    promo: false
+  });
+
+  // Notifikasi Custom (Toast)
+  const [toast, setToast] = useState(null);
+
+  const showToast = (message, type = 'success') => {
+    setToast({ message, type });
+    setTimeout(() => {
+      setToast(null);
+    }, 3000);
+  };
+
+  // === SISTEM AUTENTIKASI ===
+  const handleLogin = (e) => {
+    e.preventDefault();
+    if (!loginForm.username || !loginForm.password) {
+      showToast("Harap isi semua kolom login!", "error");
+      return;
+    }
+
+    let role = 'Pembeli';
+    let name = loginForm.username;
+
+    if (loginForm.username === 'admin') {
+      role = 'Admin';
+      name = 'Admin Utama Sekolah';
+    } else if (loginForm.username === 'penjual') {
+      role = 'Penjual';
+      name = 'Pak Eko (Kantin)';
+    } else if (loginForm.username === 'pembeli') {
+      role = 'Pembeli';
+      name = 'Andi Siswa';
+    }
+
+    const mockUser = {
+      name: name,
+      username: loginForm.username,
+      role: role,
+      balance: role === 'Penjual' ? 250000 : role === 'Admin' ? 1000000 : 75000,
+      favorites: [1, 3],
+      avatar: "https://api.dicebear.com/7.x/adventurer/svg?seed=" + loginForm.username
+    };
+
+    setCurrentUser(mockUser);
+    showToast(`Selamat datang kembali, ${mockUser.name}!`, "success");
+    
+    if (mockUser.role === 'Penjual') {
+      setActiveTab('PenjualDashboard');
+      setSellerSubTab('Kelola');
+    } else if (mockUser.role === 'Admin') {
+      setActiveTab('AdminDashboard');
+      setAdminSubTab('Tampilan');
+    } else {
+      setActiveTab('Beranda');
+    }
+  };
+
+  const handleRegister = (e) => {
+    e.preventDefault();
+    if (!regForm.name || !regForm.username || !regForm.password) {
+      showToast("Harap isi semua kolom pendaftaran!", "error");
+      return;
+    }
+
+    const newUser = {
+      name: regForm.name,
+      username: regForm.username,
+      role: regForm.role,
+      balance: regForm.role === 'Penjual' ? 0 : regForm.role === 'Admin' ? 500000 : 50000,
+      favorites: [],
+      avatar: "https://api.dicebear.com/7.x/adventurer/svg?seed=" + regForm.username
+    };
+
+    setCurrentUser(newUser);
+    showToast("Akun berhasil didaftarkan!", "success");
+    
+    if (newUser.role === 'Penjual') {
+      setActiveTab('PenjualDashboard');
+      setSellerSubTab('Kelola');
+    } else if (newUser.role === 'Admin') {
+      setActiveTab('AdminDashboard');
+      setAdminSubTab('Tampilan');
+    } else {
+      setActiveTab('Beranda');
+    }
+    setIsRegistering(false);
+  };
+
+  const handleLogout = () => {
+    setCurrentUser(null);
+    setCart([]);
+    showToast("Anda telah keluar akun", "info");
+  };
+
+  // === FITUR FAVORIT & KERANJANG ===
+  const toggleFavorite = (productId) => {
+    if (!currentUser) return;
+    let updatedFavorites = [...currentUser.favorites];
+    if (updatedFavorites.includes(productId)) {
+      updatedFavorites = updatedFavorites.filter(id => id !== productId);
+      showToast("Dihapus dari Favorit", "info");
+    } else {
+      updatedFavorites.push(productId);
+      showToast("Ditambahkan ke Favorit!", "success");
+    }
+    setCurrentUser({ ...currentUser, favorites: updatedFavorites });
+  };
+
+  const addToCart = (product) => {
+    if (product.stock <= 0) {
+      showToast("Stok produk habis!", "error");
+      return;
+    }
+    const existingIndex = cart.findIndex(item => item.id === product.id);
+    if (existingIndex > -1) {
+      const updatedCart = [...cart];
+      if (updatedCart[existingIndex].qty >= product.stock) {
+        showToast("Jumlah melebihi stok yang tersedia!", "error");
+        return;
+      }
+      updatedCart[existingIndex].qty += 1;
+      setCart(updatedCart);
+    } else {
+      setCart([...cart, { ...product, qty: 1 }]);
+    }
+    showToast(`${product.name} dimasukkan ke keranjang`, "success");
+  };
+
+  const updateCartQty = (productId, amount) => {
+    const updatedCart = cart.map(item => {
+      if (item.id === productId) {
+        const newQty = item.qty + amount;
+        const originalProduct = products.find(p => p.id === productId);
+        if (newQty <= 0) return null;
+        if (originalProduct && newQty > originalProduct.stock) {
+          showToast("Stok tidak mencukupi!", "error");
+          return item;
+        }
+        return { ...item, qty: newQty };
+      }
+      return item;
+    }).filter(Boolean);
+    setCart(updatedCart);
+  };
+
+  const removeFromCart = (productId) => {
+    setCart(cart.filter(item => item.id !== productId));
+    showToast("Produk dihapus dari keranjang", "info");
+  };
+
+  const cartTotal = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
+
+  // === TRANSAKSI & CHECKOUT ===
+  const handleCheckout = (paymentMethod) => {
+    if (cart.length === 0) return;
+    if (currentUser.balance < cartTotal && (paymentMethod === 'Transfer Bank' || paymentMethod === 'QRIS')) {
+      showToast("Saldo digital Anda tidak mencukupi!", "error");
+      return;
+    }
+
+    const orderId = "ORD-" + Math.floor(1000 + Math.random() * 9000);
+    const newOrder = {
+      id: orderId,
+      buyer: currentUser.name,
+      items: [...cart],
+      total: cartTotal,
+      paymentMethod: paymentMethod,
+      status: "Menunggu Konfirmasi",
+      sellerId: "penjual1", 
+      date: "Hari Ini",
+      reviewed: false
+    };
+
+    const updatedProducts = products.map(p => {
+      const cartItem = cart.find(c => c.id === p.id);
+      if (cartItem) {
+        return { ...p, stock: p.stock - cartItem.qty, sold: p.sold + cartItem.qty };
+      }
+      return p;
+    });
+
+    setProducts(updatedProducts);
+    setOrders([newOrder, ...orders]);
+    
+    if (paymentMethod === 'Transfer Bank' || paymentMethod === 'QRIS') {
+      setCurrentUser({ ...currentUser, balance: currentUser.balance - cartTotal });
+    }
+
+    setCart([]);
+    showToast("Pesanan berhasil dibuat! Menunggu konfirmasi.", "success");
+    setActiveTab('Pesanan');
+  };
+
+  // === FITUR PRODUK UNTUK PENJUAL ===
+  const handleSaveProduct = (e) => {
+    e.preventDefault();
+    if (!productForm.name || !productForm.price || !productForm.stock) {
+      showToast("Harap isi nama, harga, dan stok!", "error");
+      return;
+    }
+
+    const priceNum = parseInt(productForm.price);
+    const stockNum = parseInt(productForm.stock);
+    const defaultImg = "https://images.unsplash.com/photo-1542838132-92c53300491e?w=500&auto=format&fit=crop&q=60";
+
+    if (isEditing) {
+      const updated = products.map(p => {
+        if (p.id === productForm.id) {
+          return {
+            ...p,
+            name: productForm.name,
+            category: productForm.category,
+            description: productForm.description || 'Tidak ada deskripsi.',
+            price: priceNum,
+            stock: stockNum,
+            image: productForm.image || defaultImg,
+            promo: productForm.promo
+          };
+        }
+        return p;
+      });
+      setProducts(updated);
+      showToast("Produk berhasil diperbarui!", "success");
+      setIsEditing(false);
+    } else {
+      const newProduct = {
+        id: Date.now(),
+        name: productForm.name,
+        category: productForm.category,
+        description: productForm.description || 'Tidak ada deskripsi.',
+        price: priceNum,
+        stock: stockNum,
+        sold: 0,
+        rating: 5.0,
+        reviews: [],
+        image: productForm.image || defaultImg,
+        promo: productForm.promo,
+        sellerId: "penjual1"
+      };
+      setProducts([newProduct, ...products]);
+      showToast("Produk baru berhasil diunggah!", "success");
+    }
+
+    setProductForm({
+      id: null,
+      name: '',
+      category: 'Makanan',
+      description: '',
+      price: '',
+      stock: '',
+      image: '',
+      promo: false
+    });
+    setSellerSubTab('Kelola');
+  };
+
+  const handleEditProductClick = (product) => {
+    setIsEditing(true);
+    setProductForm({
+      id: product.id,
+      name: product.name,
+      category: product.category,
+      description: product.description,
+      price: product.price.toString(),
+      stock: product.stock.toString(),
+      image: product.image,
+      promo: product.promo
+    });
+    setSellerSubTab('Tambah');
+  };
+
+  const handleDeleteProduct = (productId) => {
+    setProducts(products.filter(p => p.id !== productId));
+    showToast("Produk berhasil dihapus!", "info");
+  };
+
+  const handleUpdateOrderStatus = (orderId, newStatus) => {
+    const updated = orders.map(ord => {
+      if (ord.id === orderId) {
+        return { ...ord, status: newStatus };
+      }
+      return ord;
+    });
+    setOrders(updated);
+    showToast(`Pesanan ${orderId} berstatus: ${newStatus}`, "success");
+  };
+
+  // === FITUR EDIT FOTO PRODUK (UNTUK ADMIN) ===
+  const handleUpdateProductImage = (productId, newImageUrl) => {
+    if (!newImageUrl.trim()) {
+      showToast("URL gambar tidak boleh kosong!", "error");
+      return;
+    }
+    const updated = products.map(p => {
+      if (p.id === productId) {
+        return { ...p, image: newImageUrl };
+      }
+      return p;
+    });
+    setProducts(updated);
+    showToast("Foto produk berhasil diperbarui!", "success");
+  };
+
+  // === FITUR ULASAN ===
+  const handleSubmitReview = (e, orderId, productId) => {
+    e.preventDefault();
+    if (!reviewComment.trim()) {
+      showToast("Tulis komentar ulasan Anda terlebih dahulu!", "error");
+      return;
+    }
+
+    const updatedProducts = products.map(p => {
+      if (p.id === productId) {
+        const newReviews = [...p.reviews, { user: currentUser.name, rating: reviewRating, comment: reviewComment }];
+        const avgRating = parseFloat((newReviews.reduce((sum, r) => sum + r.rating, 0) / newReviews.length).toFixed(1));
+        return { ...p, reviews: newReviews, rating: avgRating };
+      }
+      return p;
+    });
+
+    const updatedOrders = orders.map(o => {
+      if (o.id === orderId) {
+        return { ...o, reviewed: true };
+      }
+      return o;
+    });
+
+    setProducts(updatedProducts);
+    setOrders(updatedOrders);
+    setReviewComment('');
+    setSelectedProduct(null);
+    showToast("Terima kasih atas ulasan Anda!", "success");
+  };
+
+  // === GET WALLPAPER STYLES ===
+  const getWallpaperClass = () => {
+    switch (appSettings.appWallpaper) {
+      case "grid-notebook":
+        return "bg-slate-50 [background-image:linear-gradient(to_right,#e2e8f0_1px,transparent_1px),linear-gradient(to_bottom,#e2e8f0_1px,transparent_1px)] [background-size:24px_24px]";
+      case "dots-aesthetic":
+        return "bg-slate-50 [background-image:radial-gradient(#cbd5e1_1px,transparent_1px)] [background-size:16px_16px]";
+      case "amber-semangat":
+        return "bg-amber-50/60";
+      case "blue-lembut":
+        return "bg-sky-50/60";
+      case "kustom-link":
+        return "bg-slate-100 bg-cover bg-center bg-no-attachment";
+      default:
+        return "bg-slate-50";
+    }
+  };
+
+  const getWallpaperInlineStyle = () => {
+    if (appSettings.appWallpaper === "kustom-link" && appSettings.customWallpaperUrl) {
+      return { backgroundImage: `url(${appSettings.customWallpaperUrl})`, backgroundAttachment: 'fixed' };
+    }
+    return {};
+  };
+
+  // === FILTERING PRODUK ===
+  const filteredProducts = products.filter(product => {
+    const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                          product.description.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesCategory = selectedCategory === 'Semua' || product.category === selectedCategory;
+    const matchesPrice = product.price <= maxPrice;
+    return matchesSearch && matchesCategory && matchesPrice;
+  });
+
+  // Statistik Keuangan
+  const totalRevenue = orders
+    .filter(o => o.status === 'Selesai')
+    .reduce((sum, o) => sum + o.total, 0);
+
+  const totalItemsSold = orders
+    .filter(o => o.status === 'Selesai')
+    .reduce((sum, o) => sum + o.items.reduce((iSum, item) => iSum + item.qty, 0), 0);
+
+  const bestSellingProduct = [...products].sort((a, b) => b.sold - a.sold)[0];
+
+  return (
+    <div 
+      className={`min-h-screen text-slate-800 font-sans flex flex-col transition-all duration-300 ${getWallpaperClass()}`}
+      style={getWallpaperInlineStyle()}
+    >
+      
+      {/* Toast Notification */}
+      {toast && (
+        <div className={`fixed top-4 right-4 z-50 flex items-center p-4 rounded-lg shadow-xl text-white transition-all duration-300 ${
+          toast.type === 'success' ? 'bg-emerald-600' : toast.type === 'error' ? 'bg-rose-600' : 'bg-blue-600'
+        }`}>
+          <span className="font-semibold">{toast.message}</span>
+        </div>
+      )}
+
+      {/* HEADER UTAMA */}
+      <header className={`${appSettings.headerBg} text-white shadow-md sticky top-0 z-40 transition-colors duration-300`}>
+        <div className="max-w-6xl mx-auto px-4 py-3 flex justify-between items-center">
+          <div className="flex items-center space-x-3 cursor-pointer" onClick={() => setActiveTab('Beranda')}>
+            <div className="bg-amber-400 p-2 rounded-lg text-blue-900 font-bold flex items-center justify-center shadow-inner">
+              <Store size={24} />
+            </div>
+            <div>
+              <h1 className="font-extrabold text-xl tracking-tight leading-none">{appSettings.logoText}</h1>
+              <span className="text-xs text-blue-100 font-medium">{appSettings.logoSub}</span>
+            </div>
+          </div>
+
+          {currentUser ? (
+            <div className="flex items-center space-x-4">
+              <div className="hidden md:flex flex-col text-right">
+                <span className="font-semibold text-sm">{currentUser.name}</span>
+                <span className="text-xs bg-amber-400 text-blue-950 px-2 py-0.5 rounded-full font-bold self-end mt-0.5">
+                  {currentUser.role}
+                </span>
+              </div>
+              <img 
+                src={currentUser.avatar} 
+                alt="Avatar" 
+                className="w-10 h-10 rounded-full border-2 border-amber-400 bg-white cursor-pointer"
+                onClick={() => {
+                  if (currentUser.role === 'Admin') setActiveTab('AdminDashboard');
+                  else if (currentUser.role === 'Penjual') setActiveTab('PenjualDashboard');
+                  else setActiveTab('Profil');
+                }}
+              />
+              <button 
+                onClick={handleLogout}
+                className="p-1.5 bg-black/20 hover:bg-rose-700 transition rounded-lg text-white"
+                title="Keluar Akun"
+              >
+                <LogOut size={18} />
+              </button>
+            </div>
+          ) : (
+            <div className="bg-amber-400 text-blue-900 px-4 py-1.5 rounded-lg font-bold text-sm shadow">
+              Aplikasi Sekolah
+            </div>
+          )}
+        </div>
+      </header>
+
+      {/* KONTEN UTAMA */}
+      <main className="flex-1 max-w-6xl w-full mx-auto p-4 pb-24 md:pb-8">
+        
+        {/* JIKA BELUM LOGIN */}
+        {!currentUser && (
+          <div className="max-w-md mx-auto my-12 bg-white/95 backdrop-blur-sm rounded-2xl shadow-xl border border-slate-100 overflow-hidden">
+            <div className="bg-gradient-to-r from-blue-700 to-blue-600 p-6 text-center text-white">
+              <div className="w-16 h-16 bg-amber-400 text-blue-900 rounded-2xl mx-auto flex items-center justify-center shadow-lg mb-3">
+                <ShoppingBag size={32} />
+              </div>
+              <h2 className="text-2xl font-bold">{appSettings.logoText}</h2>
+              <p className="text-sm text-blue-100 mt-1">{appSettings.logoSub}</p>
+            </div>
+
+            <div className="p-6">
+              <div className="flex bg-slate-100 p-1 rounded-xl mb-6">
+                <button 
+                  onClick={() => setIsRegistering(false)} 
+                  className={`flex-1 py-2 text-center rounded-lg font-bold text-sm transition ${!isRegistering ? 'bg-white text-blue-700 shadow-sm' : 'text-slate-500'}`}
+                >
+                  Masuk
+                </button>
+                <button 
+                  onClick={() => setIsRegistering(true)} 
+                  className={`flex-1 py-2 text-center rounded-lg font-bold text-sm transition ${isRegistering ? 'bg-white text-blue-700 shadow-sm' : 'text-slate-500'}`}
+                >
+                  Daftar Baru
+                </button>
+              </div>
+
+              {!isRegistering ? (
+                /* FORM LOGIN */
+                <form onSubmit={handleLogin} className="space-y-4">
+                  <div>
+                    <label className="block text-xs font-bold uppercase text-slate-500 mb-1">Username</label>
+                    <input 
+                      type="text" 
+                      placeholder="Masukkan username (ex: pembeli / penjual / admin)" 
+                      value={loginForm.username}
+                      onChange={(e) => setLoginForm({...loginForm, username: e.target.value})}
+                      className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold uppercase text-slate-500 mb-1">Password</label>
+                    <input 
+                      type="password" 
+                      placeholder="Masukkan kata sandi (ex: 123)" 
+                      value={loginForm.password}
+                      onChange={(e) => setLoginForm({...loginForm, password: e.target.value})}
+                      className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                    />
+                  </div>
+
+                  <button 
+                    type="submit" 
+                    className="w-full py-3 bg-blue-700 hover:bg-blue-800 text-white font-bold rounded-xl transition shadow-lg shadow-blue-200 mt-2"
+                  >
+                    Masuk Sekarang
+                  </button>
+                  
+                  <div className="mt-4 pt-4 border-t border-slate-100 text-center">
+                    <p className="text-xs text-slate-500">Petunjuk Cepat Pengujian:</p>
+                    <div className="flex flex-wrap justify-center gap-2 mt-2">
+                      <button 
+                        type="button"
+                        onClick={() => setLoginForm({username: 'pembeli', password: '123'})}
+                        className="px-3 py-1 bg-amber-50 hover:bg-amber-100 text-amber-800 text-xs rounded-full font-bold border border-amber-200"
+                      >
+                        Login Pembeli
+                      </button>
+                      <button 
+                        type="button"
+                        onClick={() => setLoginForm({username: 'penjual', password: '123'})}
+                        className="px-3 py-1 bg-blue-50 hover:bg-blue-100 text-blue-800 text-xs rounded-full font-bold border border-blue-200"
+                      >
+                        Login Penjual
+                      </button>
+                      <button 
+                        type="button"
+                        onClick={() => setLoginForm({username: 'admin', password: '123'})}
+                        className="px-3 py-1 bg-rose-50 hover:bg-rose-100 text-rose-800 text-xs rounded-full font-bold border border-rose-200"
+                      >
+                        Login Admin 👑
+                      </button>
+                    </div>
+                  </div>
+                </form>
+              ) : (
+                /* FORM DAFTAR */
+                <form onSubmit={handleRegister} className="space-y-4">
+                  <div>
+                    <label className="block text-xs font-bold uppercase text-slate-500 mb-1">Nama Lengkap</label>
+                    <input 
+                      type="text" 
+                      placeholder="Nama lengkap Anda" 
+                      value={regForm.name}
+                      onChange={(e) => setRegForm({...regForm, name: e.target.value})}
+                      className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold uppercase text-slate-500 mb-1">Username Baru</label>
+                    <input 
+                      type="text" 
+                      placeholder="Buat username unik" 
+                      value={regForm.username}
+                      onChange={(e) => setRegForm({...regForm, username: e.target.value})}
+                      className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold uppercase text-slate-500 mb-1">Password</label>
+                    <input 
+                      type="password" 
+                      placeholder="Buat kata sandi aman" 
+                      value={regForm.password}
+                      onChange={(e) => setRegForm({...regForm, password: e.target.value})}
+                      className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold uppercase text-slate-500 mb-1">Mendaftar Sebagai</label>
+                    <div className="grid grid-cols-3 gap-2 mt-1">
+                      <label className={`flex flex-col items-center justify-center p-2 rounded-xl border cursor-pointer font-bold text-xs ${regForm.role === 'Pembeli' ? 'border-blue-600 bg-blue-50 text-blue-700' : 'border-slate-200 text-slate-600'}`}>
+                        <input 
+                          type="radio" 
+                          name="role" 
+                          value="Pembeli" 
+                          checked={regForm.role === 'Pembeli'}
+                          onChange={() => setRegForm({...regForm, role: 'Pembeli'})}
+                          className="sr-only" 
+                        />
+                        <span>🛍️ Pembeli</span>
+                      </label>
+                      <label className={`flex flex-col items-center justify-center p-2 rounded-xl border cursor-pointer font-bold text-xs ${regForm.role === 'Penjual' ? 'border-blue-600 bg-blue-50 text-blue-700' : 'border-slate-200 text-slate-600'}`}>
+                        <input 
+                          type="radio" 
+                          name="role" 
+                          value="Penjual" 
+                          checked={regForm.role === 'Penjual'}
+                          onChange={() => setRegForm({...regForm, role: 'Penjual'})}
+                          className="sr-only" 
+                        />
+                        <span>🧑‍🏫 Penjual</span>
+                      </label>
+                      <label className={`flex flex-col items-center justify-center p-2 rounded-xl border cursor-pointer font-bold text-xs ${regForm.role === 'Admin' ? 'border-blue-600 bg-blue-50 text-blue-700' : 'border-slate-200 text-slate-600'}`}>
+                        <input 
+                          type="radio" 
+                          name="role" 
+                          value="Admin" 
+                          checked={regForm.role === 'Admin'}
+                          onChange={() => setRegForm({...regForm, role: 'Admin'})}
+                          className="sr-only" 
+                        />
+                        <span>👑 Admin</span>
+                      </label>
+                    </div>
+                  </div>
+
+                  <button 
+                    type="submit" 
+                    className="w-full py-3 bg-amber-400 hover:bg-amber-500 text-blue-900 font-extrabold rounded-xl transition shadow-lg mt-2"
+                  >
+                    Daftar & Masuk
+                  </button>
+                </form>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* JIKA SUDAH LOGIN */}
+        {currentUser && (
+          <div>
+            
+            {/* TAMPILAN PEMBELI */}
+            {currentUser.role === 'Pembeli' && (
+              <div>
+                
+                {/* MENU BERANDA */}
+                {activeTab === 'Beranda' && (
+                  <div className="space-y-6">
+                    {/* Banner Sambutan */}
+                    <div className={`bg-gradient-to-r ${appSettings.heroBgGrad} rounded-2xl p-6 text-white shadow-lg relative overflow-hidden transition-all duration-300`}>
+                      <div className="relative z-10 max-w-lg">
+                        <h2 className="text-2xl md:text-3xl font-extrabold mb-1">Hai, {currentUser.name}! 👋</h2>
+                        <h3 className="text-lg md:text-xl font-bold text-amber-200 mb-2">{appSettings.heroTitle}</h3>
+                        <p className="text-blue-100 text-sm md:text-base">{appSettings.heroSub}</p>
+                        <div className="mt-4 inline-flex items-center bg-white text-blue-900 font-bold px-4 py-2 rounded-xl text-xs md:text-sm shadow">
+                          Saku Digital: Rp {currentUser.balance.toLocaleString('id-ID')}
+                        </div>
+                      </div>
+                      <div className="absolute right-0 bottom-0 opacity-15 text-white pointer-events-none transform translate-y-4">
+                        <ShoppingBag size={200} />
+                      </div>
+                    </div>
+
+                    {/* KATEGORI HORIZONTAL */}
+                    <div>
+                      <h3 className="font-extrabold text-lg text-slate-800 mb-3 flex items-center">
+                        <Layers className="text-amber-500 mr-2" size={20} />
+                        Kategori Produk
+                      </h3>
+                      <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-7 gap-2">
+                        {['Semua', 'Makanan', 'Minuman', 'Kerajinan Tangan', 'Fashion', 'Desain Stiker', 'Stiker', 'Poster'].map((cat) => {
+                          const iconMap = {
+                            'Semua': '🔮',
+                            'Makanan': '🍔',
+                            'Minuman': '🥤',
+                            'Kerajinan Tangan': '🎨',
+                            'Fashion': '👕',
+                            'Desain Stiker': '🖌️',
+                            'Stiker': '📌',
+                            'Poster': '🖼️'
+                          };
+                          return (
+                            <button
+                              key={cat}
+                              onClick={() => {
+                                setSelectedCategory(cat);
+                                setActiveTab('Cari');
+                              }}
+                              className="bg-white p-3 rounded-xl border border-slate-100 hover:border-amber-300 hover:shadow-md transition text-center flex flex-col items-center justify-center group"
+                            >
+                              <span className="text-2xl mb-1 group-hover:scale-110 transition duration-200">
+                                {iconMap[cat] || '📦'}
+                              </span>
+                              <span className="text-xs font-bold text-slate-600 truncate w-full">{cat}</span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    {/* PROMO DAN DISKON */}
+                    <div>
+                      <div className="flex items-center space-x-2 mb-3">
+                        <Tag className="text-amber-500" size={20} />
+                        <h3 className="font-extrabold text-lg text-slate-800">Promo Hari Ini</h3>
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {products.filter(p => p.promo).slice(0, 2).map((prod) => (
+                          <div key={prod.id} className="bg-amber-50 border border-amber-200 rounded-2xl p-4 flex items-center space-x-4">
+                            <img src={prod.image} alt={prod.name} className="w-20 h-20 object-cover rounded-xl shadow-sm" />
+                            <div className="flex-1 min-w-0">
+                              <span className="bg-amber-400 text-blue-950 font-extrabold text-[10px] px-2 py-0.5 rounded-full uppercase">
+                                PROMO SPESIAL
+                              </span>
+                              <h4 className="font-extrabold text-slate-800 truncate mt-1">{prod.name}</h4>
+                              <p className="text-slate-500 text-xs line-clamp-1">{prod.description}</p>
+                              <div className="flex items-center space-x-2 mt-1">
+                                <span className="font-extrabold text-blue-700 text-sm">Rp {prod.price.toLocaleString('id-ID')}</span>
+                                <span className="text-[10px] text-slate-400 line-through">Rp {(prod.price * 1.2).toLocaleString('id-ID')}</span>
+                              </div>
+                            </div>
+                            <button 
+                              onClick={() => addToCart(prod)}
+                              className="bg-blue-600 hover:bg-blue-700 text-white p-2.5 rounded-full shadow"
+                            >
+                              <ShoppingCart size={18} />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* PRODUK TERBARU */}
+                    <div>
+                      <h3 className="font-extrabold text-lg text-slate-800 mb-3 flex items-center">
+                        <span className="text-blue-600 mr-2">✨</span>
+                        Produk Terbaru Sekolah
+                      </h3>
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        {products.slice(0, 4).map((prod) => (
+                          <div key={prod.id} className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden flex flex-col group hover:shadow-md transition">
+                            <div className="relative">
+                              <img src={prod.image} alt={prod.name} className="w-full h-36 object-cover" />
+                              <button 
+                                onClick={() => toggleFavorite(prod.id)}
+                                className="absolute top-2 right-2 p-1.5 rounded-full bg-white/80 backdrop-blur-sm text-slate-600 hover:text-rose-600 transition"
+                              >
+                                <Heart size={16} fill={currentUser.favorites.includes(prod.id) ? "currentColor" : "none"} className={currentUser.favorites.includes(prod.id) ? "text-rose-600" : ""} />
+                              </button>
+                              <span className="absolute bottom-2 left-2 bg-blue-600 text-white font-bold text-[10px] px-2 py-0.5 rounded">
+                                {prod.category}
+                              </span>
+                            </div>
+                            <div className="p-3 flex-1 flex flex-col justify-between">
+                              <div>
+                                <h4 className="font-bold text-sm text-slate-800 line-clamp-1 cursor-pointer hover:text-blue-700" onClick={() => setSelectedProduct(prod)}>
+                                  {prod.name}
+                                </h4>
+                                <div className="flex items-center text-xs text-amber-500 mt-1">
+                                  <Star size={12} fill="currentColor" />
+                                  <span className="ml-1 font-bold">{prod.rating}</span>
+                                  <span className="text-slate-400 ml-1">({prod.reviews.length} ulasan)</span>
+                                </div>
+                              </div>
+                              <div className="mt-3 flex items-center justify-between">
+                                <div>
+                                  <span className="text-xs text-slate-400 block leading-none">Harga</span>
+                                  <span className="font-extrabold text-blue-700 text-sm">Rp {prod.price.toLocaleString('id-ID')}</span>
+                                </div>
+                                <button 
+                                  onClick={() => addToCart(prod)}
+                                  className="bg-amber-400 hover:bg-amber-500 text-blue-900 p-2 rounded-xl transition shadow"
+                                >
+                                  <ShoppingCart size={16} />
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                  </div>
+                )}
+
+                {/* MENU PENCARIAN & FILTER */}
+                {activeTab === 'Cari' && (
+                  <div className="space-y-4">
+                    <div className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm space-y-3">
+                      {/* Search Bar */}
+                      <div className="relative">
+                        <input 
+                          type="text" 
+                          placeholder="Cari produk sekolah (donat, teh, stiker, kaos...)" 
+                          value={searchTerm}
+                          onChange={(e) => setSearchTerm(e.target.value)}
+                          className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                        />
+                        <Search className="absolute left-3.5 top-3.5 text-slate-400" size={18} />
+                      </div>
+
+                      {/* Filter Kategori */}
+                      <div className="flex flex-wrap gap-2 pt-2">
+                        {['Semua', 'Makanan', 'Minuman', 'Kerajinan Tangan', 'Fashion', 'Desain Stiker', 'Stiker', 'Poster'].map(cat => (
+                          <button
+                            key={cat}
+                            onClick={() => setSelectedCategory(cat)}
+                            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition ${selectedCategory === cat ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
+                          >
+                            {cat}
+                          </button>
+                        ))}
+                      </div>
+
+                      {/* Filter Harga Maksimal */}
+                      <div className="pt-2">
+                        <label className="text-xs font-bold text-slate-500 block mb-1">
+                          Batas Harga Maksimal: <span className="text-blue-600 font-extrabold">Rp {maxPrice.toLocaleString('id-ID')}</span>
+                        </label>
+                        <input 
+                          type="range" 
+                          min="1000" 
+                          max="150000" 
+                          step="1000"
+                          value={maxPrice}
+                          onChange={(e) => setMaxPrice(parseInt(e.target.value))}
+                          className="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Hasil Pencarian */}
+                    <div>
+                      <div className="flex justify-between items-center mb-3">
+                        <h3 className="font-extrabold text-slate-800">Menampilkan {filteredProducts.length} Produk</h3>
+                      </div>
+
+                      {filteredProducts.length > 0 ? (
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                          {filteredProducts.map((prod) => (
+                            <div key={prod.id} className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden flex flex-col group hover:shadow-md transition">
+                              <div className="relative">
+                                <img src={prod.image} alt={prod.name} className="w-full h-36 object-cover" />
+                                <button 
+                                  onClick={() => toggleFavorite(prod.id)}
+                                  className="absolute top-2 right-2 p-1.5 rounded-full bg-white/80 backdrop-blur-sm text-slate-600 hover:text-rose-600 transition"
+                                >
+                                  <Heart size={16} fill={currentUser.favorites.includes(prod.id) ? "currentColor" : "none"} className={currentUser.favorites.includes(prod.id) ? "text-rose-600" : ""} />
+                                </button>
+                                <span className="absolute bottom-2 left-2 bg-blue-600 text-white font-bold text-[10px] px-2 py-0.5 rounded">
+                                  {prod.category}
+                                </span>
+                              </div>
+                              <div className="p-3 flex-1 flex flex-col justify-between">
+                                <div>
+                                  <h4 className="font-bold text-sm text-slate-800 line-clamp-1 cursor-pointer hover:text-blue-700" onClick={() => setSelectedProduct(prod)}>
+                                    {prod.name}
+                                  </h4>
+                                  <div className="flex items-center text-xs text-amber-500 mt-1">
+                                    <Star size={12} fill="currentColor" />
+                                    <span className="ml-1 font-bold">{prod.rating}</span>
+                                    <span className="text-slate-400 ml-1">({prod.reviews.length})</span>
+                                  </div>
+                                </div>
+                                <div className="mt-3 flex items-center justify-between">
+                                  <div>
+                                    <span className="text-xs text-slate-400 block leading-none">Harga</span>
+                                    <span className="font-extrabold text-blue-700 text-sm">Rp {prod.price.toLocaleString('id-ID')}</span>
+                                  </div>
+                                  <button 
+                                    onClick={() => addToCart(prod)}
+                                    className="bg-amber-400 hover:bg-amber-500 text-blue-900 p-2 rounded-xl transition shadow"
+                                  >
+                                    <ShoppingCart size={16} />
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="bg-white text-center p-12 rounded-2xl border border-dashed border-slate-200">
+                          <p className="text-slate-400 mb-2">Produk tidak ditemukan.</p>
+                          <button 
+                            onClick={() => { setSearchTerm(''); setSelectedCategory('Semua'); setMaxPrice(100000); }} 
+                            className="text-blue-600 font-bold text-sm underline"
+                          >
+                            Reset Filter
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* MENU KERANJANG */}
+                {activeTab === 'Keranjang' && (
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div className="md:col-span-2 space-y-4">
+                      <h3 className="font-extrabold text-lg text-slate-800">Keranjang Belanja</h3>
+                      
+                      {cart.length > 0 ? (
+                        <div className="space-y-3">
+                          {cart.map((item) => (
+                            <div key={item.id} className="bg-white p-4 rounded-2xl border border-slate-100 flex items-center space-x-4 shadow-sm">
+                              <img src={item.image} alt={item.name} className="w-16 h-16 object-cover rounded-xl" />
+                              <div className="flex-1 min-w-0">
+                                <h4 className="font-bold text-slate-800 truncate">{item.name}</h4>
+                                <p className="text-blue-700 font-extrabold text-sm">Rp {item.price.toLocaleString('id-ID')}</p>
+                              </div>
+                              <div className="flex items-center space-x-2">
+                                <button 
+                                  onClick={() => updateCartQty(item.id, -1)}
+                                  className="w-8 h-8 rounded-lg bg-slate-100 text-slate-800 font-bold flex items-center justify-center"
+                                >
+                                  -
+                                </button>
+                                <span className="font-extrabold text-sm w-6 text-center">{item.qty}</span>
+                                <button 
+                                  onClick={() => updateCartQty(item.id, 1)}
+                                  className="w-8 h-8 rounded-lg bg-slate-100 text-slate-800 font-bold flex items-center justify-center"
+                                >
+                                  +
+                                </button>
+                                <button 
+                                  onClick={() => removeFromCart(item.id)}
+                                  className="p-1.5 text-rose-600 hover:bg-rose-50 rounded-lg"
+                                >
+                                  <Trash2 size={18} />
+                                </button>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="bg-white text-center p-12 rounded-2xl border border-dashed border-slate-200">
+                          <ShoppingCart className="mx-auto text-slate-300 mb-3" size={48} />
+                          <p className="text-slate-500 font-medium">Keranjang belanja kosong</p>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm space-y-4 self-start">
+                      <h4 className="font-extrabold text-slate-800">Ringkasan Pesanan</h4>
+                      <div className="space-y-2 text-sm border-b border-slate-100 pb-3">
+                        <div className="flex justify-between text-slate-500">
+                          <span>Total Barang</span>
+                          <span>{cart.reduce((sum, item) => sum + item.qty, 0)} Pcs</span>
+                        </div>
+                        <div className="flex justify-between font-extrabold text-slate-800 text-base">
+                          <span>Total Bayar</span>
+                          <span className="text-blue-700">Rp {cartTotal.toLocaleString('id-ID')}</span>
+                        </div>
+                      </div>
+
+                      {cart.length > 0 && (
+                        <div className="space-y-3">
+                          <h5 className="font-bold text-xs text-slate-500 uppercase">Pilih Metode Pembayaran</h5>
+                          <div className="space-y-2">
+                            {[
+                              { id: 'COD', title: 'Bayar di Tempat (COD)', desc: 'Ketemuan langsung di lingkungan sekolah' },
+                              { id: 'QRIS', title: 'QRIS / Saku Digital', desc: 'Saldo terpotong otomatis' },
+                              { id: 'Transfer Bank', title: 'Transfer Bank Sekolah', desc: 'Transfer ke rekening koperasi' },
+                              { id: 'Tunai', title: 'Bayar Tunai', desc: 'Bayar langsung cash' }
+                            ].map((pay) => (
+                              <button
+                                key={pay.id}
+                                onClick={() => handleCheckout(pay.id)}
+                                className="w-full text-left p-3 rounded-xl border border-slate-200 hover:border-blue-500 hover:bg-blue-50/50 transition group"
+                              >
+                                <p className="font-bold text-xs text-slate-800 group-hover:text-blue-700">{pay.title}</p>
+                                <p className="text-[10px] text-slate-400">{pay.desc}</p>
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* MENU PESANAN SAYA */}
+                {activeTab === 'Pesanan' && (
+                  <div className="space-y-4">
+                    <h3 className="font-extrabold text-lg text-slate-800">Riwayat Pesanan</h3>
+                    
+                    {orders.length > 0 ? (
+                      <div className="space-y-4">
+                        {orders.map((ord) => (
+                          <div key={ord.id} className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm space-y-3">
+                            <div className="flex flex-col sm:flex-row justify-between sm:items-center border-b border-slate-100 pb-2">
+                              <div>
+                                <span className="font-extrabold text-sm text-blue-700 mr-2">{ord.id}</span>
+                                <span className="text-xs text-slate-400">{ord.date}</span>
+                              </div>
+                              <span className={`self-start mt-1 sm:mt-0 text-xs font-bold px-2.5 py-0.5 rounded-full ${
+                                ord.status === 'Menunggu Konfirmasi' ? 'bg-amber-100 text-amber-800' :
+                                ord.status === 'Sedang Diproses' ? 'bg-blue-100 text-blue-800' :
+                                ord.status === 'Selesai' ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'
+                              }`}>
+                                {ord.status}
+                              </span>
+                            </div>
+
+                            <div className="space-y-2">
+                              {ord.items.map((it) => (
+                                <div key={it.id} className="flex justify-between items-center text-sm">
+                                  <div>
+                                    <span className="font-bold text-slate-800">{it.name}</span>
+                                    <span className="text-slate-400 ml-2">x{it.qty}</span>
+                                  </div>
+                                  <span className="font-semibold text-slate-600">Rp {(it.price * it.qty).toLocaleString('id-ID')}</span>
+                                </div>
+                              ))}
+                            </div>
+
+                            <div className="flex justify-between items-center pt-2 border-t border-slate-100 text-sm">
+                              <div>
+                                <span className="text-slate-400">Total Pembayaran ({ord.paymentMethod})</span>
+                                <p className="font-extrabold text-slate-800">Rp {ord.total.toLocaleString('id-ID')}</p>
+                              </div>
+
+                              {ord.status === 'Selesai' && !ord.reviewed && (
+                                <button 
+                                  onClick={() => {
+                                    setSelectedProduct(products.find(p => p.id === ord.items[0].id));
+                                  }}
+                                  className="px-3.5 py-1.5 bg-amber-400 hover:bg-amber-500 text-blue-900 font-bold text-xs rounded-lg transition"
+                                >
+                                  Beri Ulasan
+                                </button>
+                              )}
+                              {ord.status === 'Selesai' && ord.reviewed && (
+                                <span className="text-xs text-emerald-600 font-bold flex items-center">
+                                  <CheckCircle2 size={14} className="mr-1" /> Sudah Diulas
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="bg-white text-center p-12 rounded-2xl border border-dashed border-slate-200">
+                        <ClipboardList className="mx-auto text-slate-300 mb-3" size={48} />
+                        <p className="text-slate-500 font-medium">Belum ada pesanan aktif</p>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* MENU PROFIL */}
+                {activeTab === 'Profil' && (
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm text-center space-y-4">
+                      <div className="relative w-24 h-24 mx-auto">
+                        <img src={currentUser.avatar} alt="Avatar" className="w-24 h-24 rounded-full border-4 border-blue-500 bg-blue-50" />
+                        <span className="absolute bottom-0 right-0 bg-blue-600 text-white p-1 rounded-full text-[10px] font-bold">
+                          Siswa
+                        </span>
+                      </div>
+                      <div>
+                        <h3 className="font-extrabold text-lg text-slate-800">{currentUser.name}</h3>
+                        <p className="text-slate-400 text-sm">@{currentUser.username}</p>
+                      </div>
+
+                      <div className="bg-blue-50 rounded-xl p-3 text-center">
+                        <span className="text-xs text-blue-700 font-bold block">Saku Digital Sekolah</span>
+                        <span className="text-lg font-extrabold text-blue-900">Rp {currentUser.balance.toLocaleString('id-ID')}</span>
+                      </div>
+
+                      <button 
+                        onClick={() => {
+                          setCurrentUser({...currentUser, balance: currentUser.balance + 50000});
+                          showToast("Berhasil isi ulang saku Rp 50.000", "success");
+                        }}
+                        className="w-full py-2 bg-amber-400 hover:bg-amber-500 text-blue-950 font-bold text-sm rounded-xl transition"
+                      >
+                        Top Up Saku Digital
+                      </button>
+                    </div>
+
+                    <div className="md:col-span-2 space-y-4">
+                      <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
+                        <h4 className="font-extrabold text-slate-800 mb-4 flex items-center">
+                          <Heart className="text-rose-500 mr-2" size={18} fill="currentColor" />
+                          Produk Favorit Anda ({currentUser.favorites.length})
+                        </h4>
+
+                        {currentUser.favorites.length > 0 ? (
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            {products.filter(p => currentUser.favorites.includes(p.id)).map(prod => (
+                              <div key={prod.id} className="border border-slate-100 rounded-xl p-3 flex items-center space-x-3 hover:border-blue-200 transition">
+                                <img src={prod.image} alt={prod.name} className="w-12 h-12 object-cover rounded-lg" />
+                                <div className="flex-1 min-w-0">
+                                  <h5 className="font-bold text-slate-800 text-sm truncate">{prod.name}</h5>
+                                  <p className="text-blue-700 font-extrabold text-xs">Rp {prod.price.toLocaleString('id-ID')}</p>
+                                </div>
+                                <button 
+                                  onClick={() => addToCart(prod)}
+                                  className="p-2 bg-blue-50 text-blue-600 rounded-lg"
+                                >
+                                  <ShoppingCart size={14} />
+                                </button>
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <p className="text-slate-400 text-sm text-center py-6">Belum ada produk favorit.</p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+              </div>
+            )}
+
+            {/* TAMPILAN DASHBOARD PENJUAL */}
+            {currentUser.role === 'Penjual' && (
+              <div className="space-y-6">
+                <div className="bg-gradient-to-r from-blue-700 via-blue-600 to-amber-400 rounded-2xl p-6 text-white shadow-lg flex flex-col md:flex-row justify-between md:items-center">
+                  <div>
+                    <h2 className="text-xl md:text-2xl font-extrabold mb-1">Pusat Penjual Sekolah 🧑‍🏫</h2>
+                    <p className="text-blue-100 text-xs md:text-sm">Kelola produk jualanmu dan pantau pesanan masuk!</p>
+                  </div>
+                </div>
+
+                {/* Sub Tab Penjual */}
+                <div className="flex border-b border-slate-200 space-x-1 overflow-x-auto">
+                  {[
+                    { id: 'Kelola', label: 'Kelola Produk', icon: Package },
+                    { id: 'Tambah', label: isEditing ? 'Edit Produk' : 'Tambah Produk', icon: PlusCircle },
+                    { id: 'Pesanan', label: 'Pesanan Masuk', icon: ClipboardList },
+                    { id: 'Laporan', label: 'Laporan Keuangan', icon: TrendingUp }
+                  ].map((tab) => {
+                    const Icon = tab.icon;
+                    return (
+                      <button
+                        key={tab.id}
+                        onClick={() => {
+                          setSellerSubTab(tab.id);
+                          if (tab.id !== 'Tambah') setIsEditing(false);
+                        }}
+                        className={`flex items-center space-x-2 px-4 py-2.5 font-bold text-sm border-b-2 transition whitespace-nowrap ${
+                          sellerSubTab === tab.id ? 'border-blue-600 text-blue-700' : 'border-transparent text-slate-500 hover:text-slate-800'
+                        }`}
+                      >
+                        <Icon size={16} />
+                        <span>{tab.label}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* SUB TAB KELOLA PRODUK */}
+                {sellerSubTab === 'Kelola' && (
+                  <div className="space-y-4">
+                    <div className="flex justify-between items-center">
+                      <h3 className="font-extrabold text-slate-800">Daftar Jualan Anda</h3>
+                      <button 
+                        onClick={() => setSellerSubTab('Tambah')}
+                        className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl transition flex items-center space-x-1"
+                      >
+                        <PlusCircle size={14} />
+                        <span>Unggah Produk Baru</span>
+                      </button>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {products.map((prod) => (
+                        <div key={prod.id} className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm flex items-center space-x-4">
+                          <img src={prod.image} alt={prod.name} className="w-20 h-20 object-cover rounded-xl shadow-sm" />
+                          <div className="flex-1 min-w-0">
+                            <span className="text-[10px] bg-blue-50 text-blue-600 font-bold px-2 py-0.5 rounded-full">{prod.category}</span>
+                            <h4 className="font-bold text-slate-800 truncate mt-1">{prod.name}</h4>
+                            <div className="flex space-x-4 text-xs text-slate-500 mt-1">
+                              <span>Harga: <strong className="text-blue-700">Rp {prod.price}</strong></span>
+                              <span>Stok: <strong>{prod.stock} Pcs</strong></span>
+                            </div>
+                          </div>
+                          
+                          <div className="flex flex-col space-y-2">
+                            <button 
+                              onClick={() => handleEditProductClick(prod)}
+                              className="p-2 bg-slate-50 hover:bg-blue-50 hover:text-blue-600 rounded-lg text-slate-600 transition"
+                            >
+                              <Edit size={16} />
+                            </button>
+                            <button 
+                              onClick={() => handleDeleteProduct(prod.id)}
+                              className="p-2 bg-slate-50 hover:bg-rose-50 hover:text-rose-600 rounded-lg text-slate-600 transition"
+                            >
+                              <Trash2 size={16} />
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* SUB TAB TAMBAH / EDIT PRODUK */}
+                {sellerSubTab === 'Tambah' && (
+                  <div className="max-w-xl mx-auto bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
+                    <form onSubmit={handleSaveProduct} className="space-y-4">
+                      <div>
+                        <label className="block text-xs font-bold uppercase text-slate-500 mb-1">Nama Produk</label>
+                        <input 
+                          type="text" 
+                          placeholder="Masukkan nama produk" 
+                          value={productForm.name}
+                          onChange={(e) => setProductForm({...productForm, name: e.target.value})}
+                          className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm"
+                        />
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-xs font-bold uppercase text-slate-500 mb-1">Kategori</label>
+                          <select 
+                            value={productForm.category}
+                            onChange={(e) => setProductForm({...productForm, category: e.target.value})}
+                            className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm"
+                          >
+                            {['Makanan', 'Minuman', 'Kerajinan Tangan', 'Fashion', 'Desain Stiker', 'Stiker', 'Poster'].map(cat => (
+                              <option key={cat} value={cat}>{cat}</option>
+                            ))}
+                          </select>
+                        </div>
+
+                        <div>
+                          <label className="block text-xs font-bold uppercase text-slate-500 mb-1">Setel Promo</label>
+                          <div className="flex items-center space-x-2 h-10">
+                            <input 
+                              type="checkbox" 
+                              id="promo-check"
+                              checked={productForm.promo}
+                              onChange={(e) => setProductForm({...productForm, promo: e.target.checked})}
+                              className="w-4 h-4 rounded text-blue-600"
+                            />
+                            <label htmlFor="promo-check" className="text-xs font-semibold text-slate-600 cursor-pointer">
+                              Tandai sebagai promo
+                            </label>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-xs font-bold uppercase text-slate-500 mb-1">Harga (Rp)</label>
+                          <input 
+                            type="number" 
+                            placeholder="Contoh: 5000" 
+                            value={productForm.price}
+                            onChange={(e) => setProductForm({...productForm, price: e.target.value})}
+                            className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-xs font-bold uppercase text-slate-500 mb-1">Stok Awal</label>
+                          <input 
+                            type="number" 
+                            placeholder="Contoh: 15" 
+                            value={productForm.stock}
+                            onChange={(e) => setProductForm({...productForm, stock: e.target.value})}
+                            className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm"
+                          />
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-bold uppercase text-slate-500 mb-1">Deskripsi Produk</label>
+                        <textarea 
+                          rows="3"
+                          value={productForm.description}
+                          onChange={(e) => setProductForm({...productForm, description: e.target.value})}
+                          className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm"
+                        ></textarea>
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-bold uppercase text-slate-500 mb-1">URL Foto Produk</label>
+                        <input 
+                          type="text" 
+                          value={productForm.image}
+                          onChange={(e) => setProductForm({...productForm, image: e.target.value})}
+                          className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm"
+                        />
+                      </div>
+
+                      <button type="submit" className="w-full py-3 bg-blue-600 text-white font-bold rounded-xl">
+                        {isEditing ? "Perbarui Produk" : "Unggah Produk"}
+                      </button>
+                    </form>
+                  </div>
+                )}
+
+                {/* KELOLA PESANAN PENJUAL */}
+                {sellerSubTab === 'Pesanan' && (
+                  <div className="space-y-4">
+                    <h3 className="font-extrabold text-slate-800">Daftar Permintaan Pembelian</h3>
+                    {orders.map((ord) => (
+                      <div key={ord.id} className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm flex flex-col md:flex-row justify-between gap-4">
+                        <div>
+                          <span className="font-extrabold text-blue-700">{ord.id}</span>
+                          <p className="text-xs text-slate-500">Siswa: {ord.buyer}</p>
+                          <div className="mt-2 text-xs font-semibold">
+                            {ord.items.map(it => (
+                              <div key={it.id}>• {it.name} ({it.qty} pcs)</div>
+                            ))}
+                          </div>
+                        </div>
+
+                        <div className="flex gap-2 self-end md:self-center">
+                          {ord.status === 'Menunggu Konfirmasi' && (
+                            <>
+                              <button onClick={() => handleUpdateOrderStatus(ord.id, 'Sedang Diproses')} className="px-3 py-1.5 bg-blue-600 text-white font-bold text-xs rounded-lg">Terima</button>
+                              <button onClick={() => handleUpdateOrderStatus(ord.id, 'Ditolak')} className="px-3 py-1.5 bg-rose-50 text-rose-600 font-bold text-xs rounded-lg">Tolak</button>
+                            </>
+                          )}
+                          {ord.status === 'Sedang Diproses' && (
+                            <button onClick={() => {
+                              handleUpdateOrderStatus(ord.id, 'Selesai');
+                              setCurrentUser({ ...currentUser, balance: currentUser.balance + ord.total });
+                            }} className="px-4 py-1.5 bg-emerald-600 text-white font-bold text-xs rounded-lg">Selesai</button>
+                          )}
+                          {ord.status === 'Selesai' && <span className="text-emerald-600 font-bold text-xs">Selesai</span>}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* LAPORAN KEUANGAN */}
+                {sellerSubTab === 'Laporan' && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="bg-white p-5 rounded-2xl text-center">
+                      <span className="text-xs text-slate-400 block font-bold mb-1">Karya Terjual</span>
+                      <span className="text-2xl font-extrabold text-blue-700">{totalItemsSold} Pcs</span>
+                    </div>
+                    <div className="bg-white p-5 rounded-2xl text-center">
+                      <span className="text-xs text-slate-400 block font-bold mb-1">Pendapatan</span>
+                      <span className="text-2xl font-extrabold text-emerald-600">Rp {totalRevenue.toLocaleString('id-ID')}</span>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* TAMPILAN DASHBOARD ADMIN (👑 KHUSUS ADMIN) */}
+            {currentUser.role === 'Admin' && (
+              <div className="space-y-6">
+                <div className="bg-rose-50 border border-rose-200 text-rose-900 rounded-2xl p-4 flex items-center space-x-3">
+                  <div className="bg-rose-100 p-2 rounded-xl text-rose-700">
+                    <Settings size={24} />
+                  </div>
+                  <div>
+                    <h3 className="font-extrabold text-sm">Panel Administrator Berjaya</h3>
+                    <p className="text-xs opacity-90">Atur latar belakang (wallpaper), desain landing page, serta perbarui gambar produk secara interaktif di bawah ini.</p>
+                  </div>
+                </div>
+
+                {/* Navigasi Sub Tab Admin */}
+                <div className="flex bg-slate-100/80 p-1.5 rounded-2xl border border-slate-200 max-w-lg">
+                  {[
+                    { id: 'Tampilan', label: 'Tampilan & Wallpaper', icon: Palette },
+                    { id: 'ProdukGambar', label: 'Ganti Gambar Produk', icon: LucideImage },
+                    { id: 'LandingPage', label: 'Landing Page', icon: Layout }
+                  ].map((subTab) => {
+                    const Icon = subTab.icon;
+                    return (
+                      <button
+                        key={subTab.id}
+                        onClick={() => setAdminSubTab(subTab.id)}
+                        className={`flex-1 flex items-center justify-center space-x-2 py-2.5 rounded-xl font-bold text-xs md:text-sm transition duration-200 ${
+                          adminSubTab === subTab.id 
+                            ? 'bg-rose-600 text-white shadow-md' 
+                            : 'text-slate-600 hover:text-slate-800'
+                        }`}
+                      >
+                        <Icon size={16} />
+                        <span>{subTab.label}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* 1. EDIT TAMPILAN & WALLPAPER */}
+                {adminSubTab === 'Tampilan' && (
+                  <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm space-y-6 animate-in fade-in slide-in-from-bottom-3 duration-300">
+                    <div>
+                      <h4 className="font-extrabold text-slate-800 text-lg flex items-center">
+                        <Palette className="text-rose-500 mr-2" size={20} />
+                        Desain Wallpaper & Latar Belakang Aplikasi
+                      </h4>
+                      <p className="text-xs text-slate-400 mt-1">Ubah nuansa background aplikasi Student Market agar sesuai dengan tema acara sekolah kita.</p>
+                    </div>
+
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                      {[
+                        { id: 'standard', name: 'Putih Bersih (Default)', desc: 'Slate minimalis modern', preview: 'bg-slate-50 border border-slate-200' },
+                        { id: 'grid-notebook', name: 'Buku Kotak Sekolah', desc: 'Notebook matematika klasik', preview: 'bg-white [background-image:linear-gradient(to_right,#f1f5f9_1px,transparent_1px),linear-gradient(to_bottom,#f1f5f9_1px,transparent_1px)] [background-size:12px_12px] border border-slate-200' },
+                        { id: 'dots-aesthetic', name: 'Pola Titik Aesthetic', desc: 'Minimalis modern artistik', preview: 'bg-white [background-image:radial-gradient(#e2e8f0_1px,transparent_1px)] [background-size:10px_10px] border border-slate-200' },
+                        { id: 'amber-semangat', name: 'Kuning Semangat', desc: 'Kuning pastel hangat & ceria', preview: 'bg-amber-100/50 border border-amber-200' },
+                        { id: 'blue-lembut', name: 'Biru Lembut', desc: 'Warna pendidikan teduh', preview: 'bg-sky-100/50 border border-sky-200' },
+                        { id: 'kustom-link', name: 'Wallpaper Gambar Kustom', desc: 'Gunakan URL gambar pilihan', preview: 'bg-gradient-to-tr from-slate-200 to-indigo-100 border' }
+                      ].map((item) => (
+                        <button
+                          key={item.id}
+                          onClick={() => {
+                            setAppSettings({...appSettings, appWallpaper: item.id});
+                            showToast(`Wallpaper diubah ke ${item.name}`, 'success');
+                          }}
+                          className={`p-3.5 rounded-2xl border text-left flex flex-col justify-between transition-all duration-200 ${
+                            appSettings.appWallpaper === item.id 
+                              ? 'border-rose-500 ring-4 ring-rose-100 bg-rose-50/20' 
+                              : 'border-slate-100 bg-slate-50/50 hover:border-slate-300'
+                          }`}
+                        >
+                          <div className={`w-full h-10 rounded-xl mb-3 ${item.preview}`} />
+                          <div>
+                            <span className="font-extrabold text-xs text-slate-800 block">{item.name}</span>
+                            <span className="text-[10px] text-slate-400 block mt-0.5">{item.desc}</span>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+
+                    {/* Input Gambar Kustom */}
+                    {appSettings.appWallpaper === 'kustom-link' && (
+                      <div className="bg-rose-50/40 p-4 rounded-2xl border border-rose-100/50 space-y-2">
+                        <label className="block text-xs font-bold uppercase text-slate-600">Tautan Gambar Wallpaper Kustom (URL)</label>
+                        <div className="flex gap-2">
+                          <input 
+                            type="text" 
+                            placeholder="Tempel tautan gambar bebas dari internet (ex: dari Pinterest/Unsplash)"
+                            value={appSettings.customWallpaperUrl}
+                            onChange={(e) => setAppSettings({...appSettings, customWallpaperUrl: e.target.value})}
+                            className="flex-1 px-4 py-2 text-sm rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-rose-500 bg-white"
+                          />
+                          <button 
+                            onClick={() => showToast("Tautan wallpaper kustom berhasil disimpan!", "success")}
+                            className="px-4 py-2 bg-rose-600 text-white font-bold rounded-xl text-xs hover:bg-rose-700 transition"
+                          >
+                            Terapkan
+                          </button>
+                        </div>
+                        <span className="text-[10px] text-slate-400 block">Saran: Gunakan URL gambar beresolusi tinggi dengan orientasi landscape yang tidak terlalu kontras agar tulisan tetap terbaca jelas.</span>
+                      </div>
+                    )}
+
+                    <hr className="border-slate-100" />
+
+                    {/* Atur Teks Identitas Header & Warna Header */}
+                    <div className="space-y-4">
+                      <h5 className="font-extrabold text-sm text-slate-700">Nama Aplikasi & Warna Header</h5>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-xs font-bold uppercase text-slate-500 mb-1">Nama Aplikasi / Logo</label>
+                          <input 
+                            type="text" 
+                            value={appSettings.logoText}
+                            onChange={(e) => setAppSettings({...appSettings, logoText: e.target.value})}
+                            className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-rose-500 bg-white"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-xs font-bold uppercase text-slate-500 mb-1">Slogan Sub-Judul</label>
+                          <input 
+                            type="text" 
+                            value={appSettings.logoSub}
+                            onChange={(e) => setAppSettings({...appSettings, logoSub: e.target.value})}
+                            className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-rose-500 bg-white"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 pt-2">
+                        {[
+                          { id: 'bg-blue-700', name: 'Biru Pendidikan', color: 'bg-blue-700' },
+                          { id: 'bg-emerald-700', name: 'Hijau Koperasi', color: 'bg-emerald-700' },
+                          { id: 'bg-rose-700', name: 'Merah Semangat', color: 'bg-rose-700' },
+                          { id: 'bg-violet-700', name: 'Ungu Kreatif', color: 'bg-violet-700' }
+                        ].map((bg) => (
+                          <button
+                            key={bg.id}
+                            onClick={() => {
+                              setAppSettings({...appSettings, headerBg: bg.id});
+                              showToast(`Warna header diubah ke ${bg.name}`, 'success');
+                            }}
+                            className={`p-2.5 rounded-xl border text-left flex items-center space-x-2.5 transition ${
+                              appSettings.headerBg === bg.id ? 'border-rose-600 bg-slate-50 shadow-inner' : 'border-slate-200 hover:border-slate-300'
+                            }`}
+                          >
+                            <span className={`w-5 h-5 rounded-full ${bg.color} block border`}></span>
+                            <span className="text-xs font-bold text-slate-700">{bg.name}</span>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* 2. GANTI GAMBAR PRODUK SECARA INTERAKTIF */}
+                {adminSubTab === 'ProdukGambar' && (
+                  <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm space-y-6 animate-in fade-in slide-in-from-bottom-3 duration-300">
+                    <div>
+                      <h4 className="font-extrabold text-slate-800 text-lg flex items-center">
+                        <LucideImage className="text-rose-500 mr-2" size={20} />
+                        Ganti Gambar & Foto Produk Realtime
+                      </h4>
+                      <p className="text-xs text-slate-400 mt-1">Ubah gambar produk apa saja menggunakan link eksternal atau manfaatkan pustaka foto instan di bawah ini.</p>
+                    </div>
+
+                    {/* Preset Gambar Cepat */}
+                    <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200">
+                      <span className="text-xs font-extrabold text-slate-600 block mb-3 uppercase tracking-wider flex items-center">
+                        <Sparkles className="text-amber-500 mr-1.5" size={14} />
+                        Pustaka Foto Instan (Cukup Tarik & Klik)
+                      </span>
+                      <div className="grid grid-cols-3 sm:grid-cols-6 gap-2.5">
+                        {PRESET_IMAGES.map((preset, index) => (
+                          <div 
+                            key={index} 
+                            className="bg-white p-1 rounded-xl border border-slate-100 flex flex-col items-center hover:shadow-md transition duration-200"
+                          >
+                            <img src={preset.url} alt={preset.name} className="w-full h-14 object-cover rounded-lg" />
+                            <span className="text-[9px] font-bold text-slate-500 mt-1.5 text-center truncate w-full">{preset.name}</span>
+                            <button
+                              onClick={() => {
+                                // Salin URL ke clipboard buatan / simulasi
+                                navigator.clipboard.writeText(preset.url);
+                                showToast(`URL "${preset.name}" disalin! Tempel di input produk pilihanmu.`, 'info');
+                              }}
+                              className="mt-1 w-full text-[8px] bg-rose-50 text-rose-700 font-extrabold py-0.5 rounded uppercase hover:bg-rose-100 transition"
+                            >
+                              Salin URL
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Form Daftar Edit Gambar per Produk */}
+                    <div className="space-y-4">
+                      <span className="text-xs font-bold text-slate-500 block uppercase">Daftar Produk Jualan</span>
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {products.map((prod) => (
+                          <div 
+                            key={prod.id} 
+                            className="border border-slate-100 rounded-2xl p-4 flex flex-col bg-slate-50/50 hover:bg-white transition-colors duration-200"
+                          >
+                            <div className="flex items-center space-x-3 mb-3">
+                              <img src={prod.image} alt={prod.name} className="w-14 h-14 object-cover rounded-xl border shadow-inner" />
+                              <div className="min-w-0">
+                                <span className="text-[9px] bg-rose-100 text-rose-800 font-extrabold px-2 py-0.5 rounded-full">{prod.category}</span>
+                                <h5 className="font-bold text-slate-800 text-sm truncate mt-1">{prod.name}</h5>
+                                <p className="text-xs text-blue-600 font-extrabold">Rp {prod.price.toLocaleString('id-ID')}</p>
+                              </div>
+                            </div>
+
+                            <div className="space-y-2">
+                              <label className="block text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">Tautan Gambar (Link/URL)</label>
+                              <div className="flex gap-2">
+                                <input 
+                                  type="text"
+                                  defaultValue={prod.image}
+                                  id={`img-url-${prod.id}`}
+                                  placeholder="Masukkan URL foto baru"
+                                  className="flex-1 px-3 py-2 rounded-xl border border-slate-200 text-xs bg-white focus:outline-none focus:ring-1 focus:ring-rose-500"
+                                />
+                                <button
+                                  onClick={() => {
+                                    const inputVal = document.getElementById(`img-url-${prod.id}`).value;
+                                    handleUpdateProductImage(prod.id, inputVal);
+                                  }}
+                                  className="px-3.5 py-2 bg-rose-600 hover:bg-rose-700 text-white font-extrabold text-xs rounded-xl transition"
+                                >
+                                  Simpan
+                                </button>
+                              </div>
+                            </div>
+
+                            {/* Tombol rekomendasi cepat khusus produk ini */}
+                            <div className="mt-3 pt-2.5 border-t border-slate-100 flex items-center justify-between">
+                              <span className="text-[9px] text-slate-400 font-semibold">Terapkan Foto Cepat:</span>
+                              <div className="flex gap-1">
+                                {PRESET_IMAGES.slice(0, 4).map((p, i) => (
+                                  <button
+                                    key={i}
+                                    onClick={() => {
+                                      handleUpdateProductImage(prod.id, p.url);
+                                      document.getElementById(`img-url-${prod.id}`).value = p.url;
+                                    }}
+                                    className="px-2 py-0.5 bg-white border border-slate-200 hover:border-rose-500 hover:text-rose-600 rounded text-[9px] font-extrabold text-slate-600 transition"
+                                  >
+                                    {p.name.split(' ')[0]}
+                                  </button>
+                                ))}
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* 3. EDIT LANDING PAGE */}
+                {adminSubTab === 'LandingPage' && (
+                  <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm space-y-6 animate-in fade-in slide-in-from-bottom-3 duration-300">
+                    <h4 className="font-extrabold text-slate-800 text-lg flex items-center">
+                      <Layout className="text-rose-500 mr-2" size={20} />
+                      Konfigurasi Landing Page & Banner
+                    </h4>
+
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block text-xs font-bold uppercase text-slate-500 mb-1">Judul Banner Sambutan</label>
+                        <input 
+                          type="text" 
+                          value={appSettings.heroTitle}
+                          onChange={(e) => setAppSettings({...appSettings, heroTitle: e.target.value})}
+                          className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-rose-500 bg-white"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-bold uppercase text-slate-500 mb-1">Deskripsi & Motivasi Siswa</label>
+                        <textarea 
+                          rows="3"
+                          value={appSettings.heroSub}
+                          onChange={(e) => setAppSettings({...appSettings, heroSub: e.target.value})}
+                          className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-rose-500 bg-white"
+                        ></textarea>
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-bold uppercase text-slate-500 mb-2">Gradasi Warna Banner Sambutan</label>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          {[
+                            { id: 'from-blue-700 via-blue-600 to-amber-400', name: 'Biru Sekolah ke Kuning Kreatif', style: 'bg-gradient-to-r from-blue-700 via-blue-600 to-amber-400' },
+                            { id: 'from-emerald-700 to-teal-500', name: 'Hijau Alami Terang', style: 'bg-gradient-to-r from-emerald-700 to-teal-500' },
+                            { id: 'from-rose-600 to-amber-500', name: 'Oranye Senja Merona', style: 'bg-gradient-to-r from-rose-600 to-amber-500' },
+                            { id: 'from-purple-700 to-indigo-500', name: 'Ungu Mewah Modern', style: 'bg-gradient-to-r from-purple-700 to-indigo-500' }
+                          ].map((grad) => (
+                            <button
+                              key={grad.id}
+                              onClick={() => {
+                                setAppSettings({...appSettings, heroBgGrad: grad.id});
+                                showToast(`Gradasi banner diganti ke ${grad.name}`, 'success');
+                              }}
+                              className={`p-3 rounded-xl border text-left flex flex-col justify-between h-20 transition ${
+                                appSettings.heroBgGrad === grad.id ? 'border-rose-500 ring-2 ring-rose-100 bg-rose-50/20' : 'border-slate-200 hover:border-slate-300'
+                              }`}
+                            >
+                              <span className={`w-full h-5 rounded-md ${grad.style} block border`}></span>
+                              <span className="text-[10px] font-bold text-slate-700 mt-2">{grad.name}</span>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+          </div>
+        )}
+
+      </main>
+
+      {/* DETAIL MODAL PRODUK DAN RATING */}
+      {selectedProduct && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-3xl max-w-lg w-full overflow-hidden shadow-2xl animate-in fade-in zoom-in-95 duration-200">
+            <div className="relative">
+              <img src={selectedProduct.image} alt={selectedProduct.name} className="w-full h-48 object-cover" />
+              <button 
+                onClick={() => setSelectedProduct(null)}
+                className="absolute top-4 right-4 bg-white/90 p-2 rounded-full text-slate-700 hover:text-black shadow transition"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="p-6 space-y-4">
+              <div>
+                <span className="text-xs bg-blue-100 text-blue-700 font-extrabold px-2.5 py-0.5 rounded-full uppercase">
+                  {selectedProduct.category}
+                </span>
+                <h3 className="font-extrabold text-xl text-slate-800 mt-1">{selectedProduct.name}</h3>
+                <div className="flex items-center text-sm text-amber-500 mt-1">
+                  <Star size={14} fill="currentColor" />
+                  <span className="ml-1 font-bold">{selectedProduct.rating}</span>
+                  <span className="text-slate-400 ml-1">({selectedProduct.reviews.length} ulasan dari siswa)</span>
+                </div>
+              </div>
+
+              <div>
+                <h4 className="font-bold text-xs text-slate-400 uppercase">Deskripsi</h4>
+                <p className="text-slate-600 text-sm mt-1">{selectedProduct.description}</p>
+              </div>
+
+              <div className="flex justify-between items-center bg-slate-50 p-3 rounded-xl border border-slate-100">
+                <div>
+                  <span className="text-xs text-slate-400 block">Sisa Stok</span>
+                  <span className="font-bold text-slate-800">{selectedProduct.stock} Unit</span>
+                </div>
+                <div>
+                  <span className="text-xs text-slate-400 block text-right">Harga</span>
+                  <span className="font-extrabold text-blue-700 text-lg">Rp {selectedProduct.price.toLocaleString('id-ID')}</span>
+                </div>
+              </div>
+
+              {currentUser && currentUser.role === 'Pembeli' && (
+                <div className="space-y-3 border-t border-slate-100 pt-3">
+                  <h4 className="font-bold text-xs text-slate-400 uppercase">Beri Ulasan Kamu</h4>
+                  <form onSubmit={(e) => handleSubmitReview(e, "SIMULATED-ID", selectedProduct.id)} className="space-y-3">
+                    <div className="flex space-x-1.5 text-amber-400">
+                      {[1, 2, 3, 4, 5].map(star => (
+                        <button
+                          key={star}
+                          type="button"
+                          onClick={() => setReviewRating(star)}
+                          className="hover:scale-110 transition"
+                        >
+                          <Star size={20} fill={star <= reviewRating ? "currentColor" : "none"} />
+                        </button>
+                      ))}
+                    </div>
+                    <div className="flex space-x-2">
+                      <input 
+                        type="text"
+                        placeholder="Komentar Anda"
+                        value={reviewComment}
+                        onChange={(e) => setReviewComment(e.target.value)}
+                        className="flex-1 px-3 py-2 rounded-xl border border-slate-200 text-sm"
+                      />
+                      <button 
+                        type="submit"
+                        className="px-4 py-2 bg-blue-600 text-white font-bold text-xs rounded-xl"
+                      >
+                        Kirim
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              )}
+
+              <div className="space-y-2 border-t border-slate-100 pt-3">
+                <h4 className="font-bold text-xs text-slate-400 uppercase">Ulasan Teman</h4>
+                <div className="max-h-24 overflow-y-auto space-y-2">
+                  {selectedProduct.reviews.length > 0 ? (
+                    selectedProduct.reviews.map((rev, index) => (
+                      <div key={index} className="text-xs border-b border-slate-50 pb-2">
+                        <div className="flex justify-between font-bold text-slate-700">
+                          <span>{rev.user}</span>
+                          <span className="text-amber-500">★ {rev.rating}</span>
+                        </div>
+                        <p className="text-slate-500 italic mt-0.5">"{rev.comment}"</p>
+                      </div>
+                    ))
+                  ) : (
+                    <p className="text-xs text-slate-400">Belum ada ulasan.</p>
+                  )}
+                </div>
+              </div>
+
+              {currentUser && currentUser.role === 'Pembeli' && (
+                <button 
+                  onClick={() => {
+                    addToCart(selectedProduct);
+                    setSelectedProduct(null);
+                  }}
+                  className="w-full py-3 bg-amber-400 text-blue-900 font-extrabold rounded-xl shadow"
+                >
+                  Tambah Ke Keranjang
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* FOOTER NAVIGASI */}
+      {currentUser && (
+        <footer className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-sm border-t border-slate-200 py-2 px-4 shadow-lg z-30 md:relative md:mt-12 md:bg-transparent md:border-none md:shadow-none">
+          <div className="max-w-md mx-auto md:max-w-6xl flex justify-around md:justify-end md:space-x-4 items-center">
+            
+            {currentUser.role === 'Pembeli' ? (
+              <>
+                {[
+                  { id: 'Beranda', label: 'Beranda', icon: Store },
+                  { id: 'Cari', label: 'Cari', icon: Search },
+                  { id: 'Keranjang', label: `Keranjang (${cart.length})`, icon: ShoppingCart },
+                  { id: 'Pesanan', label: 'Pesanan', icon: ClipboardList },
+                  { id: 'Profil', label: 'Profil', icon: User }
+                ].map((item) => {
+                  const Icon = item.icon;
+                  return (
+                    <button
+                      key={item.id}
+                      onClick={() => setActiveTab(item.id)}
+                      className={`flex flex-col md:flex-row items-center md:space-x-1.5 p-2 rounded-xl transition ${
+                        activeTab === item.id 
+                          ? 'text-blue-600 font-bold bg-blue-50 md:px-4' 
+                          : 'text-slate-500 hover:text-slate-800'
+                      }`}
+                    >
+                      <Icon size={20} />
+                      <span className="text-[10px] md:text-sm mt-0.5 md:mt-0 font-semibold">{item.label}</span>
+                    </button>
+                  );
+                })}
+              </>
+            ) : currentUser.role === 'Penjual' ? (
+              <button
+                onClick={() => setActiveTab('PenjualDashboard')}
+                className="flex items-center space-x-1.5 px-4 py-2 bg-blue-600 text-white font-bold rounded-xl shadow text-xs"
+              >
+                <Store size={18} />
+                <span>Dashboard Penjual</span>
+              </button>
+            ) : (
+              <button
+                onClick={() => setActiveTab('AdminDashboard')}
+                className="flex items-center space-x-1.5 px-4 py-2 bg-rose-600 text-white font-bold rounded-xl shadow text-xs"
+              >
+                <Settings size={18} />
+                <span>Dashboard Admin</span>
+              </button>
+            )}
+
+            <span className="hidden md:inline text-xs text-slate-400 self-center">
+              Student Market Sekolah © 2026. All rights reserved.
+            </span>
+
+          </div>
+        </footer>
+      )}
+
+    </div>
+  );
+}
